@@ -1,3 +1,7 @@
+## 1.20
+ - Parse SIO
+ - Move to GitHub
+ - Auto NR-MAC read for iClass SE
 ## 1.19
  - Capture longer SIO
  - 'Save as Seader' for iClass SE Captured with NR-MAC
