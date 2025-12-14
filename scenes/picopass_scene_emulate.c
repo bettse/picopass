@@ -48,7 +48,6 @@ void picopass_scene_emulate_update_ui(void* context) {
 
     // Reload credential data
     picopass_device_parse_credential(dev_data->card_data, pacs);
-    picopass_device_parse_wiegand(pacs);
 
     uint64_t credential = 0;
     memcpy(&credential, pacs->credential, sizeof(uint64_t));
@@ -101,7 +100,6 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
 
     // Reload credential data
     picopass_device_parse_credential(dev_data->card_data, pacs);
-    picopass_device_parse_wiegand(pacs);
 
     uint64_t credential = 0;
     memcpy(&credential, pacs->credential, sizeof(uint64_t));

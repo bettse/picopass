@@ -380,7 +380,6 @@ static bool picopass_device_load_data(PicopassDevice* dev, FuriString* path, boo
             FURI_LOG_D(TAG, "Skipping parsing: SE enabled");
         } else if(card_data[PICOPASS_ICLASS_PACS_CFG_BLOCK_INDEX].valid) {
             picopass_device_parse_credential(card_data, pacs);
-            picopass_device_parse_wiegand(pacs);
         }
 
         parsed = true;
@@ -523,6 +522,26 @@ void picopass_device_encrypt(uint8_t* dec_data, uint8_t* enc_data) {
     mbedtls_des3_free(&ctx);
 }
 
+void picopass_device_parse_wiegand(PicopassPacs* pacs) {
+    uint8_t* credential = pacs->credential;
+    uint32_t* halves = (uint32_t*)credential;
+    if(halves[0] == 0) {
+        uint8_t leading0s = __builtin_clz(REVERSE_BYTES_U32(halves[1]));
+        pacs->bitLength = 31 - leading0s;
+    } else {
+        uint8_t leading0s = __builtin_clz(REVERSE_BYTES_U32(halves[0]));
+        pacs->bitLength = 63 - leading0s;
+    }
+
+    // Remove sentinel bit from credential.  Byteswapping to handle array of bytes vs 64bit value
+    uint64_t sentinel = __builtin_bswap64(1ULL << pacs->bitLength);
+    uint64_t swapped = 0;
+    memcpy(&swapped, credential, sizeof(uint64_t));
+    swapped = swapped ^ sentinel;
+    memcpy(credential, &swapped, sizeof(uint64_t));
+    FURI_LOG_D(TAG, "PACS: (%d) %016llx", pacs->bitLength, swapped);
+}
+
 void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pacs) {
     pacs->biometrics = card_data[6].data[4];
     pacs->pin_length = card_data[6].data[6] & 0x0F;
@@ -547,27 +566,9 @@ void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pa
     }
 
     pacs->sio = (card_data[10].data[0] == 0x30); // rough check
+    picopass_device_parse_wiegand(pacs);
 }
 
-void picopass_device_parse_wiegand(PicopassPacs* pacs) {
-    uint8_t* credential = pacs->credential;
-    uint32_t* halves = (uint32_t*)credential;
-    if(halves[0] == 0) {
-        uint8_t leading0s = __builtin_clz(REVERSE_BYTES_U32(halves[1]));
-        pacs->bitLength = 31 - leading0s;
-    } else {
-        uint8_t leading0s = __builtin_clz(REVERSE_BYTES_U32(halves[0]));
-        pacs->bitLength = 63 - leading0s;
-    }
-
-    // Remove sentinel bit from credential.  Byteswapping to handle array of bytes vs 64bit value
-    uint64_t sentinel = __builtin_bswap64(1ULL << pacs->bitLength);
-    uint64_t swapped = 0;
-    memcpy(&swapped, credential, sizeof(uint64_t));
-    swapped = swapped ^ sentinel;
-    memcpy(credential, &swapped, sizeof(uint64_t));
-    FURI_LOG_D(TAG, "PACS: (%d) %016llx", pacs->bitLength, swapped);
-}
 
 bool picopass_device_hid_csn(PicopassDevice* dev) {
     furi_assert(dev);
