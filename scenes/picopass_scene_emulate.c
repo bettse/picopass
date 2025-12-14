@@ -11,13 +11,35 @@ NfcCommand picopass_scene_listener_callback(PicopassListenerEvent event, void* c
     return NfcCommandContinue;
 }
 
-void picopass_scene_emulate_on_enter(void* context) {
+void picopass_scene_emulate_widget_callback(GuiButtonType result, InputType type, void* context) {
+    Picopass* picopass = context;
+    if(type == InputTypeShort) {
+        view_dispatcher_send_custom_event(picopass->view_dispatcher, result);
+    }
+}
+
+void picopass_scene_emulate_start(Picopass* picopass) {
+    PicopassDevice* dev = picopass->dev;
+    PicopassDeviceData* dev_data = &dev->dev_data;
+
+    picopass_blink_emulate_start(picopass);
+
+    picopass->listener = picopass_listener_alloc(picopass->nfc, dev_data);
+    picopass_listener_start(picopass->listener, picopass_scene_listener_callback, picopass);
+}
+
+void picopass_scene_emulate_stop(Picopass* picopass) {
+    picopass_blink_stop(picopass);
+    picopass_listener_stop(picopass->listener);
+    picopass_listener_free(picopass->listener);
+    picopass->listener = NULL;
+}
+
+void picopass_scene_emulate_update_ui(void* context) {
     Picopass* picopass = context;
     PicopassDevice* dev = picopass->dev;
     PicopassDeviceData* dev_data = &dev->dev_data;
     PicopassPacs* pacs = &dev_data->pacs;
-
-    dolphin_deed(DolphinDeedNfcEmulate);
 
     Widget* widget = picopass->widget;
     widget_reset(widget);
@@ -38,32 +60,113 @@ void picopass_scene_emulate_on_enter(void* context) {
     wiegand_message_t packed = initialize_message_object(Top, Mid, Bot, pacs->bitLength);
     wiegand_card_t card;
 
-    if (Unpack_H10301(&packed, &card)) {
-      // Successfully unpacked H10301 card
+    if(Unpack_H10301(&packed, &card)) {
+        // Successfully unpacked H10301 card
+        FURI_LOG_D(
+            TAG,
+            "Unpacked H10301: FC:%lu CN:%llu ParityValid: %u",
+            card.FacilityCode,
+            card.CardNumber,
+            card.ParityValid);
 
-      FuriString* desc = furi_string_alloc();
-      furi_string_printf(
-          desc,
-          "FC:%lu CN:%llu",
-          card.FacilityCode,
-          card.CardNumber);
+        FuriString* desc = furi_string_alloc();
+        furi_string_printf(desc, "FC:%lu CN:%llu", card.FacilityCode, card.CardNumber);
 
-        widget_add_string_element(widget, 92, 40, AlignCenter, AlignTop, FontPrimary, furi_string_get_cstr(desc));
-      furi_string_free(desc);
+        widget_add_string_element(
+            widget, 92, 40, AlignCenter, AlignTop, FontPrimary, furi_string_get_cstr(desc));
+        furi_string_free(desc);
+
+        widget_add_button_element(
+            widget, GuiButtonTypeRight, "+1", picopass_scene_emulate_widget_callback, context);
+        widget_add_button_element(
+            widget, GuiButtonTypeLeft, "-1", picopass_scene_emulate_widget_callback, context);
+        widget_add_button_element(
+            widget, GuiButtonTypeCenter, "1", picopass_scene_emulate_widget_callback, context);
     } else {
         widget_add_string_element(widget, 92, 40, AlignCenter, AlignTop, FontPrimary, "PicoPass");
+        widget_add_string_element(
+            widget, 34, 55, AlignLeft, AlignTop, FontSecondary, "Touch flipper to reader");
+    }
+}
+
+void picopass_scene_emulate_on_enter(void* context) {
+    Picopass* picopass = context;
+
+    dolphin_deed(DolphinDeedNfcEmulate);
+    picopass_scene_emulate_update_ui(picopass);
+
+    picopass_scene_emulate_start(picopass);
+    view_dispatcher_switch_to_view(picopass->view_dispatcher, PicopassViewWidget);
+}
+
+void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
+    FURI_LOG_D(TAG, "Updating H10301 credential, direction: %d", direction);
+    PicopassDevice* dev = picopass->dev;
+    PicopassDeviceData* dev_data = &dev->dev_data;
+    PicopassPacs* pacs = &dev_data->pacs;
+
+    picopass_scene_emulate_stop(picopass);
+
+    // Reload credential data
+    picopass_device_parse_credential(dev_data->card_data, pacs);
+    picopass_device_parse_wiegand(pacs);
+
+    uint64_t credential = 0;
+    memcpy(&credential, pacs->credential, sizeof(uint64_t));
+    credential = __builtin_bswap64(credential);
+
+    uint32_t Bot = credential & 0xFFFFFFFF;
+    uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
+    uint32_t Top = 0; // H10301 only uses up to 64 bits
+    wiegand_message_t packed = initialize_message_object(Top, Mid, Bot, pacs->bitLength);
+    wiegand_card_t card;
+
+    if(Unpack_H10301(&packed, &card)) {
+        FURI_LOG_D(
+            TAG,
+            "Current H10301: FC:%lu CN:%llu ParityValid: %u",
+            card.FacilityCode,
+            card.CardNumber,
+            card.ParityValid);
+        switch(direction) {
+        case -1: // Decrease
+            card.CardNumber = (card.CardNumber == 0) ? 0 : card.CardNumber - 1;
+            break;
+        case 1: // Increase
+            card.CardNumber = (card.CardNumber == 255) ? 255 : card.CardNumber + 1;
+            break;
+        case 0: // Zero out
+            card.CardNumber = 0;
+            break;
+        default:
+            break;
+        }
+        FURI_LOG_D(
+            TAG,
+            "Updated H10301: FC:%lu CN:%llu ParityValid: %u",
+            card.FacilityCode,
+            card.CardNumber,
+            card.ParityValid);
+
+        Pack_H10301(&card, &packed);
+
+        uint64_t sentinel = 1ULL << pacs->bitLength;
+        credential = 0;
+        credential |= ((uint64_t)packed.Bot) & 0xFFFFFFFF;
+        credential |= ((uint64_t)packed.Mid) << 32;
+        // Add sentinel
+        credential |= sentinel;
+        // Copy back to pacs
+        credential = __builtin_bswap64(credential);
+        memcpy(pacs->credential, &credential, sizeof(uint64_t));
+        picopass_device_encrypt(pacs->credential, dev_data->card_data[7].data);
+
+    } else {
+        FURI_LOG_E(TAG, "Failed to unpack H10301 credential");
     }
 
-    FURI_LOG_D(TAG, "Unpacked H10301: FC:%lu CN:%llu ParityValid: %u", card.FacilityCode, card.CardNumber, card.ParityValid);
-
-    widget_add_string_element(
-        widget, 34, 55, AlignLeft, AlignTop, FontSecondary, "Touch flipper to reader");
-
-    view_dispatcher_switch_to_view(picopass->view_dispatcher, PicopassViewWidget);
-    picopass_blink_emulate_start(picopass);
-
-    picopass->listener = picopass_listener_alloc(picopass->nfc, dev_data);
-    picopass_listener_start(picopass->listener, picopass_scene_listener_callback, picopass);
+    picopass_scene_emulate_update_ui(picopass);
+    picopass_scene_emulate_start(picopass);
 }
 
 bool picopass_scene_emulate_on_event(void* context, SceneManagerEvent event) {
@@ -76,11 +179,14 @@ bool picopass_scene_emulate_on_event(void* context, SceneManagerEvent event) {
         } else if(event.event == PicopassCustomEventNrMacSaved) {
             scene_manager_next_scene(picopass->scene_manager, PicopassSceneNrMacSaved);
             consumed = true;
-        } else if (event.event == GuiButtonTypeRight) {
+        } else if(event.event == GuiButtonTypeRight) {
+            picopass_scene_emulate_update_pacs(picopass, 1);
             consumed = true;
-        } else if (event.event == GuiButtonTypeLeft) {
+        } else if(event.event == GuiButtonTypeLeft) {
+            picopass_scene_emulate_update_pacs(picopass, -1);
             consumed = true;
-        } else if (event.event == GuiButtonTypeCenter) {
+        } else if(event.event == GuiButtonTypeCenter) {
+            picopass_scene_emulate_update_pacs(picopass, 0);
             consumed = true;
         }
     } else if(event.type == SceneManagerEventTypeBack) {
@@ -92,9 +198,7 @@ bool picopass_scene_emulate_on_event(void* context, SceneManagerEvent event) {
 void picopass_scene_emulate_on_exit(void* context) {
     Picopass* picopass = context;
 
-    picopass_blink_stop(picopass);
-    picopass_listener_stop(picopass->listener);
-    picopass_listener_free(picopass->listener);
+    picopass_scene_emulate_stop(picopass);
 
     // Clear view
     widget_reset(picopass->widget);

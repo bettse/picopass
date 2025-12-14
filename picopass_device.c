@@ -515,6 +515,14 @@ void picopass_device_decrypt(uint8_t* enc_data, uint8_t* dec_data) {
     mbedtls_des3_free(&ctx);
 }
 
+void picopass_device_encrypt(uint8_t* dec_data, uint8_t* enc_data) {
+    mbedtls_des3_context ctx;
+    mbedtls_des3_init(&ctx);
+    mbedtls_des3_set2key_enc(&ctx, picopass_iclass_decryptionkey);
+    mbedtls_des3_crypt_ecb(&ctx, dec_data, enc_data);
+    mbedtls_des3_free(&ctx);
+}
+
 void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pacs) {
     pacs->biometrics = card_data[6].data[4];
     pacs->pin_length = card_data[6].data[6] & 0x0F;
