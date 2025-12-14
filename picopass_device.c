@@ -8,6 +8,7 @@
 #include <toolbox/hex.h>
 #include <lfrfid/protocols/lfrfid_protocols.h>
 #include <lfrfid/lfrfid_dict_file.h>
+#include "picopass_keys.h"
 
 #define TAG "PicopassDevice"
 
@@ -587,6 +588,13 @@ void picopass_device_build_credential(PicopassPacs* pacs, PicopassBlock* card_da
     uint8_t block_data[8];
     memcpy(block_data, &credential, sizeof(uint64_t));
 
+    // When updating the credential, change the CSN to cause a new read
+    card_data[PICOPASS_CSN_BLOCK_INDEX].data[0]++;
+    uint8_t key[PICOPASS_BLOCK_LEN] = {};
+    loclass_iclass_calc_div_key(
+        card_data[PICOPASS_CSN_BLOCK_INDEX].data, picopass_iclass_key, key, false);
+    memcpy(card_data[PICOPASS_SECURE_KD_BLOCK_INDEX].data, key, PICOPASS_BLOCK_LEN);
+
     if(pacs->encryption == PicopassDeviceEncryption3DES) {
         picopass_device_encrypt(block_data, card_data[7].data);
         picopass_device_encrypt(pacs->pin0, card_data[8].data);
@@ -635,29 +643,5 @@ void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) 
         FURI_LOG_W(TAG, "Warning: Packed credential Top field is non-zero, truncating upper bits");
     }
     FURI_LOG_D(TAG, "New credential: %016llx", credential);
-
-    FURI_LOG_D(
-        TAG,
-        "pacs->credential before: %02x%02x%02x%02x%02x%02x%02x%02x",
-        pacs->credential[0],
-        pacs->credential[1],
-        pacs->credential[2],
-        pacs->credential[3],
-        pacs->credential[4],
-        pacs->credential[5],
-        pacs->credential[6],
-        pacs->credential[7]);
-
     memcpy(pacs->credential, &credential, sizeof(uint64_t));
-    FURI_LOG_D(
-        TAG,
-        "pacs->credential after: %02x%02x%02x%02x%02x%02x%02x%02x",
-        pacs->credential[0],
-        pacs->credential[1],
-        pacs->credential[2],
-        pacs->credential[3],
-        pacs->credential[4],
-        pacs->credential[5],
-        pacs->credential[6],
-        pacs->credential[7]);
 }
