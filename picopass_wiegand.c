@@ -172,7 +172,7 @@ bool Unpack_C1k35s(wiegand_message_t* packed, wiegand_card_t* card) {
                          ((packed->Bot >> 0) & 1)) &&
                         (oddparity32((packed->Mid & 0x3) ^ (packed->Bot & 0xFFFFFFFF)) ==
                          ((packed->Mid >> 2) & 1));
-    return true;
+    return card->ParityValid;
 }
 
 // H10302
