@@ -10,13 +10,8 @@ void picopass_scene_formats_on_enter(void* context) {
     FuriString* str = picopass->text_box_store;
     furi_string_reset(str);
 
-    // Convert from byte array to uint64_t
-    uint64_t credential = 0;
-    memcpy(&credential, pacs.credential, sizeof(pacs.credential));
-    credential = __builtin_bswap64(credential);
-
-
-    // TODO: Check for Wiegand formats
+    wiegand_message_t wmo = picopass_pacs_extract_wmo(&pacs);
+    wiegand_format_description(&wmo, str);
 
     text_box_set_font(picopass->text_box, TextBoxFontHex);
     text_box_set_text(picopass->text_box, furi_string_get_cstr(picopass->text_box_store));
