@@ -1,6 +1,6 @@
 #include "../picopass_i.h"
 #include <dolphin/dolphin.h>
-#include "../h10301.h"
+#include "../picopass_wiegand.h"
 
 #define TAG "PicopassSceneEmulate"
 

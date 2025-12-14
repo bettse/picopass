@@ -1,4 +1,5 @@
-#include "h10301.h"
+#include "picopass_wiegand.h"
+#include <string.h>
 
 static inline uint8_t oddparity32(uint32_t x) {
     return bit_lib_test_parity_32(x, BitLibParityOdd);
