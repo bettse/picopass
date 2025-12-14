@@ -35,6 +35,17 @@ void picopass_scene_emulate_stop(Picopass* picopass) {
     picopass->listener = NULL;
 }
 
+wiegand_message_t picopass_scene_emulate_extract_wmo(PicopassPacs* pacs) {
+    uint64_t credential = 0;
+    memcpy(&credential, pacs->credential, sizeof(uint64_t));
+    credential = __builtin_bswap64(credential);
+
+    uint32_t Bot = credential & 0xFFFFFFFF;
+    uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
+    uint32_t Top = 0; // H10301 only uses up to 64 bits
+    return initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
+}
+
 void picopass_scene_emulate_update_ui(void* context) {
     Picopass* picopass = context;
     PicopassDevice* dev = picopass->dev;
@@ -49,14 +60,7 @@ void picopass_scene_emulate_update_ui(void* context) {
     // Reload credential data
     picopass_device_parse_credential(dev_data->card_data, pacs);
 
-    uint64_t credential = 0;
-    memcpy(&credential, pacs->credential, sizeof(uint64_t));
-    credential = __builtin_bswap64(credential);
-
-    uint32_t Bot = credential & 0xFFFFFFFF;
-    uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
-    uint32_t Top = 0; // H10301 only uses up to 64 bits
-    wiegand_message_t packed = initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
+    wiegand_message_t packed = picopass_scene_emulate_extract_wmo(pacs);
     wiegand_card_t card;
 
     if(Unpack_H10301(&packed, &card)) {
@@ -101,14 +105,7 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
     // Reload credential data
     picopass_device_parse_credential(dev_data->card_data, pacs);
 
-    uint64_t credential = 0;
-    memcpy(&credential, pacs->credential, sizeof(uint64_t));
-    credential = __builtin_bswap64(credential);
-
-    uint32_t Bot = credential & 0xFFFFFFFF;
-    uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
-    uint32_t Top = 0; // H10301 only uses up to 64 bits
-    wiegand_message_t packed = initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
+    wiegand_message_t packed = picopass_scene_emulate_extract_wmo(pacs);
     wiegand_card_t card;
 
     if(Unpack_H10301(&packed, &card)) {
@@ -140,7 +137,7 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
 
         Pack_H10301(&card, &packed);
 
-        credential = 0;
+        uint64_t credential = 0;
         credential |= ((uint64_t)packed.Bot);
         credential |= ((uint64_t)packed.Mid) << 32;
         // Top is always 0 for H10301
