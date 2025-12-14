@@ -103,7 +103,6 @@ int wiegand_format_count(wiegand_message_t* packed) {
 
 void wiegand_format_description(wiegand_message_t* packed, FuriString* description) {
     wiegand_card_t card;
-    // furi_string_cat_printf(expected, "H10301\nFC: 164 CN: 14210\n");
     if(Unpack_H10301(packed, &card)) {
         furi_string_cat_printf(
             description, "H10301\nFC: %lu CN: %llu\n", card.FacilityCode, card.CardNumber);
