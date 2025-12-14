@@ -37,18 +37,18 @@ typedef struct {
 wiegand_message_t
     picopass_initialize_wiegand_message_object(uint32_t top, uint32_t mid, uint32_t bot, int n);
 
-bool picopass_Pack_H10301(wiegand_card_t* card, wiegand_message_t* packed);
-bool picopass_Unpack_H10301(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_pack_H10301(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_unpack_H10301(wiegand_message_t* packed, wiegand_card_t* card);
 
 // Added formats
-bool picopass_Pack_C1k35s(wiegand_card_t* card, wiegand_message_t* packed);
-bool picopass_Unpack_C1k35s(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_pack_C1k35s(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_unpack_C1k35s(wiegand_message_t* packed, wiegand_card_t* card);
 
-bool picopass_Pack_H10302(wiegand_card_t* card, wiegand_message_t* packed);
-bool picopass_Unpack_H10302(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_pack_H10302(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_unpack_H10302(wiegand_message_t* packed, wiegand_card_t* card);
 
-bool picopass_Pack_H10304(wiegand_card_t* card, wiegand_message_t* packed);
-bool picopass_Unpack_H10304(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_pack_H10304(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_unpack_H10304(wiegand_message_t* packed, wiegand_card_t* card);
 
 int picopass_wiegand_format_count(wiegand_message_t* packed);
 void picopass_wiegand_format_description(wiegand_message_t* packed, FuriString* description);
