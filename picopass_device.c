@@ -576,10 +576,12 @@ void picopass_device_build_credential(PicopassPacs* pacs, PicopassBlock* card_da
     card_data[6].data[7] = pacs->encryption;
 
     // The credential is stored without the sentinel bit, so we need to add it back before encryption
-    uint64_t sentinel = 1ULL << pacs->bitLength;
+    uint64_t sentinel = __builtin_bswap64(1ULL << pacs->bitLength);
+    FURI_LOG_D(TAG, "sentinel %016llx", sentinel);
     uint64_t credential = 0;
     memcpy(&credential, pacs->credential, sizeof(uint64_t));
-    credential = __builtin_bswap64(credential | sentinel);
+    FURI_LOG_D(TAG, "credential %016llx", credential);
+    credential |= sentinel;
     FURI_LOG_D(TAG, "Adding sentinel back: (%d) %016llx", pacs->bitLength, credential);
 
     uint8_t block_data[8];
@@ -625,6 +627,7 @@ void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) 
     uint64_t credential = 0;
     credential |= ((uint64_t)packed->Bot);
     credential |= ((uint64_t)packed->Mid) << 32;
+    credential = __builtin_bswap64(credential);
     if(pacs->bitLength > 64) {
         FURI_LOG_W(TAG, "Warning: PACS bitLength exceeds 64 bits, truncating credential");
     }
@@ -632,5 +635,29 @@ void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) 
         FURI_LOG_W(TAG, "Warning: Packed credential Top field is non-zero, truncating upper bits");
     }
     FURI_LOG_D(TAG, "New credential: %016llx", credential);
+
+    FURI_LOG_D(
+        TAG,
+        "pacs->crential before: %02x%02x%02x%02x%02x%02x%02x%02x",
+        pacs->credential[0],
+        pacs->credential[1],
+        pacs->credential[2],
+        pacs->credential[3],
+        pacs->credential[4],
+        pacs->credential[5],
+        pacs->credential[6],
+        pacs->credential[7]);
+
     memcpy(pacs->credential, &credential, sizeof(uint64_t));
+    FURI_LOG_D(
+        TAG,
+        "pacs->crential after: %02x%02x%02x%02x%02x%02x%02x%02x",
+        pacs->credential[0],
+        pacs->credential[1],
+        pacs->credential[2],
+        pacs->credential[3],
+        pacs->credential[4],
+        pacs->credential[5],
+        pacs->credential[6],
+        pacs->credential[7]);
 }
