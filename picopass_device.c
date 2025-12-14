@@ -618,7 +618,7 @@ wiegand_message_t picopass_pacs_extract_wmo(PicopassPacs* pacs) {
     uint32_t Bot = credential & 0xFFFFFFFF;
     uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
     uint32_t Top = 0; // H10301 only uses up to 64 bits
-    return initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
+    return picopass_initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
 }
 
 void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) {

@@ -79,7 +79,7 @@ void picopass_scene_device_info_on_enter(void* context) {
         picopass);
 
     wiegand_message_t wiegand_msg = picopass_pacs_extract_wmo(pacs);
-    size_t format_count = wiegand_format_count(&wiegand_msg);
+    size_t format_count = picopass_wiegand_format_count(&wiegand_msg);
     if(format_count > 0) {
         widget_add_button_element(
             picopass->widget,

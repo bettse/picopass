@@ -149,7 +149,7 @@ void picopass_scene_card_menu_on_enter(void* context) {
         }
 
         wiegand_message_t wiegand_msg = picopass_pacs_extract_wmo(pacs);
-        size_t format_count = wiegand_format_count(&wiegand_msg);
+        size_t format_count = picopass_wiegand_format_count(&wiegand_msg);
         if(format_count > 0) {
             included[SubmenuIndexParse] = true;
         }

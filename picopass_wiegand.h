@@ -35,20 +35,20 @@ typedef struct {
 } wiegand_card_t;
 
 wiegand_message_t
-    initialize_wiegand_message_object(uint32_t top, uint32_t mid, uint32_t bot, int n);
+    picopass_initialize_wiegand_message_object(uint32_t top, uint32_t mid, uint32_t bot, int n);
 
-bool Pack_H10301(wiegand_card_t* card, wiegand_message_t* packed);
-bool Unpack_H10301(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_Pack_H10301(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_Unpack_H10301(wiegand_message_t* packed, wiegand_card_t* card);
 
 // Added formats
-bool Pack_C1k35s(wiegand_card_t* card, wiegand_message_t* packed);
-bool Unpack_C1k35s(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_Pack_C1k35s(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_Unpack_C1k35s(wiegand_message_t* packed, wiegand_card_t* card);
 
-bool Pack_H10302(wiegand_card_t* card, wiegand_message_t* packed);
-bool Unpack_H10302(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_Pack_H10302(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_Unpack_H10302(wiegand_message_t* packed, wiegand_card_t* card);
 
-bool Pack_H10304(wiegand_card_t* card, wiegand_message_t* packed);
-bool Unpack_H10304(wiegand_message_t* packed, wiegand_card_t* card);
+bool picopass_Pack_H10304(wiegand_card_t* card, wiegand_message_t* packed);
+bool picopass_Unpack_H10304(wiegand_message_t* packed, wiegand_card_t* card);
 
-int wiegand_format_count(wiegand_message_t* packed);
-void wiegand_format_description(wiegand_message_t* packed, FuriString* description);
+int picopass_wiegand_format_count(wiegand_message_t* packed);
+void picopass_wiegand_format_description(wiegand_message_t* packed, FuriString* description);

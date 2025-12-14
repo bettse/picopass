@@ -53,13 +53,13 @@ void picopass_scene_emulate_update_ui(void* context) {
     wiegand_message_t packed = picopass_pacs_extract_wmo(pacs);
     wiegand_card_t card;
 
-    if(Unpack_H10301(&packed, &card)) {
+    if(picopass_Unpack_H10301(&packed, &card)) {
         format = WiegandFormat_H10301;
-    } else if(Unpack_C1k35s(&packed, &card)) {
+    } else if(picopass_Unpack_C1k35s(&packed, &card)) {
         format = WiegandFormat_C1k35s;
-    } else if(Unpack_H10302(&packed, &card)) {
+    } else if(picopass_Unpack_H10302(&packed, &card)) {
         format = WiegandFormat_H10302;
-    } else if(Unpack_H10304(&packed, &card)) {
+    } else if(picopass_Unpack_H10304(&packed, &card)) {
         format = WiegandFormat_H10304;
     } else {
         format = WiegandFormat_None;
@@ -110,10 +110,10 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
     wiegand_message_t packed = picopass_pacs_extract_wmo(pacs);
     wiegand_card_t card;
 
-    if(Unpack_H10301(&packed, &card)) {
-    } else if(Unpack_C1k35s(&packed, &card)) {
-    } else if(Unpack_H10302(&packed, &card)) {
-    } else if(Unpack_H10304(&packed, &card)) {
+    if(picopass_Unpack_H10301(&packed, &card)) {
+    } else if(picopass_Unpack_C1k35s(&packed, &card)) {
+    } else if(picopass_Unpack_H10302(&packed, &card)) {
+    } else if(picopass_Unpack_H10304(&packed, &card)) {
     }
 
     if(format != WiegandFormat_None) {
@@ -144,13 +144,13 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
             card.ParityValid);
 
         if(format == WiegandFormat_H10301) {
-            Pack_H10301(&card, &packed);
+            picopass_Pack_H10301(&card, &packed);
         } else if(format == WiegandFormat_C1k35s) {
-            Pack_C1k35s(&card, &packed);
+            picopass_Pack_C1k35s(&card, &packed);
         } else if(format == WiegandFormat_H10302) {
-            Pack_H10302(&card, &packed);
+            picopass_Pack_H10302(&card, &packed);
         } else if(format == WiegandFormat_H10304) {
-            Pack_H10304(&card, &packed);
+            picopass_Pack_H10304(&card, &packed);
         } else {
             FURI_LOG_E(TAG, "Unknown format, cannot repack");
         }
