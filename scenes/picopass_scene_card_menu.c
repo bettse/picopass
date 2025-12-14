@@ -150,7 +150,6 @@ void picopass_scene_card_menu_on_enter(void* context) {
 
         wiegand_message_t wiegand_msg = picopass_pacs_extract_wmo(pacs);
         size_t format_count = wiegand_format_count(&wiegand_msg);
-        // TODO: Check for Wiegand formats
         if(format_count > 0) {
             included[SubmenuIndexParse] = true;
         }
