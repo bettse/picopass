@@ -24,7 +24,7 @@ typedef struct {
     bool ParityValid; // Only valid for responses
 } wiegand_card_t;
 
-wiegand_message_t initialize_message_object(uint32_t top, uint32_t mid, uint32_t bot, int n);
+wiegand_message_t initialize_wiegand_message_object(uint32_t top, uint32_t mid, uint32_t bot, int n);
 
 bool Pack_H10301(wiegand_card_t* card, wiegand_message_t* packed);
 bool Unpack_H10301(wiegand_message_t* packed, wiegand_card_t* card);

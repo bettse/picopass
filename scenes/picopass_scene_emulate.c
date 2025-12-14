@@ -57,23 +57,15 @@ void picopass_scene_emulate_update_ui(void* context) {
     uint32_t Bot = credential & 0xFFFFFFFF;
     uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
     uint32_t Top = 0; // H10301 only uses up to 64 bits
-    wiegand_message_t packed = initialize_message_object(Top, Mid, Bot, pacs->bitLength);
+    wiegand_message_t packed = initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
     wiegand_card_t card;
 
     if(Unpack_H10301(&packed, &card)) {
-        // Successfully unpacked H10301 card
-        FURI_LOG_D(
-            TAG,
-            "Unpacked H10301: FC:%lu CN:%llu ParityValid: %u",
-            card.FacilityCode,
-            card.CardNumber,
-            card.ParityValid);
-
         FuriString* desc = furi_string_alloc();
         furi_string_printf(desc, "FC:%lu CN:%llu", card.FacilityCode, card.CardNumber);
 
         widget_add_string_element(
-            widget, 92, 40, AlignCenter, AlignTop, FontPrimary, furi_string_get_cstr(desc));
+            widget, 92, 40, AlignCenter, AlignTop, FontSecondary, furi_string_get_cstr(desc));
         furi_string_free(desc);
 
         widget_add_button_element(
@@ -81,7 +73,7 @@ void picopass_scene_emulate_update_ui(void* context) {
         widget_add_button_element(
             widget, GuiButtonTypeLeft, "-1", picopass_scene_emulate_widget_callback, context);
         widget_add_button_element(
-            widget, GuiButtonTypeCenter, "1", picopass_scene_emulate_widget_callback, context);
+            widget, GuiButtonTypeCenter, "0", picopass_scene_emulate_widget_callback, context);
     } else {
         widget_add_string_element(widget, 92, 40, AlignCenter, AlignTop, FontPrimary, "PicoPass");
         widget_add_string_element(
@@ -118,7 +110,7 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
     uint32_t Bot = credential & 0xFFFFFFFF;
     uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
     uint32_t Top = 0; // H10301 only uses up to 64 bits
-    wiegand_message_t packed = initialize_message_object(Top, Mid, Bot, pacs->bitLength);
+    wiegand_message_t packed = initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
     wiegand_card_t card;
 
     if(Unpack_H10301(&packed, &card)) {
@@ -160,7 +152,6 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
         credential = __builtin_bswap64(credential);
         memcpy(pacs->credential, &credential, sizeof(uint64_t));
         picopass_device_encrypt(pacs->credential, dev_data->card_data[7].data);
-
     } else {
         FURI_LOG_E(TAG, "Failed to unpack H10301 credential");
     }
