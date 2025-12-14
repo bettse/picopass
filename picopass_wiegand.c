@@ -121,7 +121,7 @@ void picopass_wiegand_format_description(wiegand_message_t* packed, FuriString* 
     }
     if(picopass_Unpack_H10304(packed, &card)) {
         furi_string_cat_printf(
-            description, "H10304:\nFC: %lu CN: %llu\n", card.FacilityCode, card.CardNumber);
+            description, "H10304\nFC: %lu CN: %llu\n", card.FacilityCode, card.CardNumber);
     }
 }
 
