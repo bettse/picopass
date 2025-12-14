@@ -575,21 +575,22 @@ void picopass_device_build_credential(PicopassPacs* pacs, PicopassBlock* card_da
     card_data[6].data[6] = (card_data[6].data[6] & 0xF0) | (pacs->pin_length & 0x0F);
     card_data[6].data[7] = pacs->encryption;
 
-    if(pacs->encryption == PicopassDeviceEncryption3DES) {
-        // The credential is stored without the sentinel bit, so we need to add it back before encryption
-        uint64_t sentinel = 1ULL << pacs->bitLength;
-        uint64_t credential = 0;
-        memcpy(&credential, pacs->credential, sizeof(uint64_t));
-        credential = __builtin_bswap64(credential | sentinel);
-        FURI_LOG_D(TAG, "Adding sentinel back: (%d) %016llx", pacs->bitLength, credential);
+    // The credential is stored without the sentinel bit, so we need to add it back before encryption
+    uint64_t sentinel = 1ULL << pacs->bitLength;
+    uint64_t credential = 0;
+    memcpy(&credential, pacs->credential, sizeof(uint64_t));
+    credential = __builtin_bswap64(credential | sentinel);
+    FURI_LOG_D(TAG, "Adding sentinel back: (%d) %016llx", pacs->bitLength, credential);
 
-        uint8_t block_data[8];
-        memcpy(block_data, &credential, sizeof(uint64_t));
+    uint8_t block_data[8];
+    memcpy(block_data, &credential, sizeof(uint64_t));
+
+    if(pacs->encryption == PicopassDeviceEncryption3DES) {
         picopass_device_encrypt(block_data, card_data[7].data);
         picopass_device_encrypt(pacs->pin0, card_data[8].data);
         picopass_device_encrypt(pacs->pin1, card_data[9].data);
     } else if(pacs->encryption == PicopassDeviceEncryptionNone) {
-        memcpy(card_data[7].data, pacs->credential, PICOPASS_BLOCK_LEN);
+        memcpy(card_data[7].data, block_data, PICOPASS_BLOCK_LEN);
         memcpy(card_data[8].data, pacs->pin0, PICOPASS_BLOCK_LEN);
         memcpy(card_data[9].data, pacs->pin1, PICOPASS_BLOCK_LEN);
     } else if(pacs->encryption == PicopassDeviceEncryptionDES) {
