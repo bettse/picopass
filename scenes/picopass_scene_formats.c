@@ -3,7 +3,6 @@
 
 void picopass_scene_formats_on_enter(void* context) {
     Picopass* picopass = context;
-    PluginWiegand* plugin = picopass->plugin_wiegand;
     PicopassDevice* dev = picopass->dev;
     PicopassDeviceData dev_data = dev->dev_data;
     PicopassPacs pacs = dev_data.pacs;
@@ -16,16 +15,8 @@ void picopass_scene_formats_on_enter(void* context) {
     memcpy(&credential, pacs.credential, sizeof(pacs.credential));
     credential = __builtin_bswap64(credential);
 
-    if(plugin) {
-        FuriString* description = furi_string_alloc();
-        size_t format_count = plugin->count(pacs.bitLength, credential);
-        for(size_t i = 0; i < format_count; i++) {
-            plugin->description(pacs.bitLength, credential, i, description);
 
-            furi_string_cat_printf(str, "%s\n", furi_string_get_cstr(description));
-        }
-        furi_string_free(description);
-    }
+    // TODO: Check for Wiegand formats
 
     text_box_set_font(picopass->text_box, TextBoxFontHex);
     text_box_set_text(picopass->text_box, furi_string_get_cstr(picopass->text_box_store));

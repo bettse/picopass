@@ -115,7 +115,6 @@ void picopass_scene_card_menu_on_enter(void* context) {
     PicopassPacs* pacs = &picopass->dev->dev_data.pacs;
     PicopassBlock* card_data = picopass->dev->dev_data.card_data;
     PicopassDeviceAuthMethod auth = picopass->dev->dev_data.auth;
-    PluginWiegand* plugin = picopass->plugin_wiegand;
 
     bool SE = card_data[PICOPASS_ICLASS_PACS_CFG_BLOCK_INDEX].valid &&
               0x30 == card_data[PICOPASS_ICLASS_PACS_CFG_BLOCK_INDEX].data[0];
@@ -149,16 +148,10 @@ void picopass_scene_card_menu_on_enter(void* context) {
             included[SubmenuIndexSaveLegacy] = true;
         }
 
-        if(plugin) {
-            // Convert from byte array to uint64_t
-            uint64_t credential = 0;
-            memcpy(&credential, pacs->credential, sizeof(uint64_t));
-            credential = __builtin_bswap64(credential);
-
-            size_t format_count = plugin->count(pacs->bitLength, credential);
-            if(format_count > 0) {
-                included[SubmenuIndexParse] = true;
-            }
+        size_t format_count = 0;
+        // TODO: Check for Wiegand formats
+        if(format_count > 0) {
+            included[SubmenuIndexParse] = true;
         }
     }
 
