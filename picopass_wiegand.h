@@ -7,6 +7,15 @@
 #include <lib/bit_lib/bit_lib.h>
 #include <furi.h>
 
+typedef enum {
+    WiegandFormat_None = 0,
+    WiegandFormat_H10301,
+    WiegandFormat_C1k35s,
+    WiegandFormat_H10302,
+    WiegandFormat_H10304,
+    WiegandFormat_Count
+} WiegandFormat;
+
 // Structure for packed wiegand messages
 // Always align lowest value (last transmitted) bit to ordinal position 0 (lowest valued bit bottom)
 typedef struct {

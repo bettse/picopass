@@ -3,6 +3,8 @@
 
 #define TAG "PicopassSceneEmulate"
 
+static WiegandFormat format = WiegandFormat_None;
+
 NfcCommand picopass_scene_listener_callback(PicopassListenerEvent event, void* context) {
     UNUSED(event);
     UNUSED(context);
@@ -52,6 +54,22 @@ void picopass_scene_emulate_update_ui(void* context) {
     wiegand_card_t card;
 
     if(Unpack_H10301(&packed, &card)) {
+        format = WiegandFormat_H10301;
+    } else if(Unpack_C1k35s(&packed, &card)) {
+        format = WiegandFormat_C1k35s;
+    } else if(Unpack_H10302(&packed, &card)) {
+        format = WiegandFormat_H10302;
+    } else if(Unpack_H10304(&packed, &card)) {
+        format = WiegandFormat_H10304;
+    } else {
+        format = WiegandFormat_None;
+    }
+
+    if(format == WiegandFormat_None) {
+        widget_add_string_element(widget, 92, 40, AlignCenter, AlignTop, FontPrimary, "PicoPass");
+        widget_add_string_element(
+            widget, 34, 55, AlignLeft, AlignTop, FontSecondary, "Touch flipper to reader");
+    } else {
         FuriString* desc = furi_string_alloc();
         furi_string_printf(desc, "FC:%lu CN:%llu", card.FacilityCode, card.CardNumber);
 
@@ -65,10 +83,6 @@ void picopass_scene_emulate_update_ui(void* context) {
             widget, GuiButtonTypeLeft, "-1", picopass_scene_emulate_widget_callback, context);
         widget_add_button_element(
             widget, GuiButtonTypeCenter, "0", picopass_scene_emulate_widget_callback, context);
-    } else {
-        widget_add_string_element(widget, 92, 40, AlignCenter, AlignTop, FontPrimary, "PicoPass");
-        widget_add_string_element(
-            widget, 34, 55, AlignLeft, AlignTop, FontSecondary, "Touch flipper to reader");
     }
 }
 
@@ -97,9 +111,15 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
     wiegand_card_t card;
 
     if(Unpack_H10301(&packed, &card)) {
+    } else if(Unpack_C1k35s(&packed, &card)) {
+    } else if(Unpack_H10302(&packed, &card)) {
+    } else if(Unpack_H10304(&packed, &card)) {
+    }
+
+    if(format != WiegandFormat_None) {
         FURI_LOG_D(
             TAG,
-            "Current H10301: FC:%lu CN:%llu ParityValid: %u",
+            "Current: FC:%lu CN:%llu ParityValid: %u",
             card.FacilityCode,
             card.CardNumber,
             card.ParityValid);
@@ -118,15 +138,24 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
         }
         FURI_LOG_D(
             TAG,
-            "Updated H10301: FC:%lu CN:%llu ParityValid: %u",
+            "Updated: FC:%lu CN:%llu ParityValid: %u",
             card.FacilityCode,
             card.CardNumber,
             card.ParityValid);
 
-        Pack_H10301(&card, &packed);
+        if(format == WiegandFormat_H10301) {
+            Pack_H10301(&card, &packed);
+        } else if(format == WiegandFormat_C1k35s) {
+            Pack_C1k35s(&card, &packed);
+        } else if(format == WiegandFormat_H10302) {
+            Pack_H10302(&card, &packed);
+        } else if(format == WiegandFormat_H10304) {
+            Pack_H10304(&card, &packed);
+        } else {
+            FURI_LOG_E(TAG, "Unknown format, cannot repack");
+        }
 
         picopass_pacs_load_from_wmo(pacs, &packed);
-
         picopass_device_build_credential(pacs, dev_data->card_data);
     } else {
         FURI_LOG_E(TAG, "Failed to unpack H10301 credential");
