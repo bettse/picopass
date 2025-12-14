@@ -97,7 +97,7 @@ void picopass_scene_emulate_on_enter(void* context) {
 }
 
 void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
-    FURI_LOG_D(TAG, "Updating H10301 credential, direction: %d", direction);
+    FURI_LOG_D(TAG, "Updating credential, direction: %d", direction);
     PicopassDevice* dev = picopass->dev;
     PicopassDeviceData* dev_data = &dev->dev_data;
     PicopassPacs* pacs = &dev_data->pacs;
