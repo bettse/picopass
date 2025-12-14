@@ -638,7 +638,7 @@ void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) 
 
     FURI_LOG_D(
         TAG,
-        "pacs->crential before: %02x%02x%02x%02x%02x%02x%02x%02x",
+        "pacs->credential before: %02x%02x%02x%02x%02x%02x%02x%02x",
         pacs->credential[0],
         pacs->credential[1],
         pacs->credential[2],
@@ -651,7 +651,7 @@ void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) 
     memcpy(pacs->credential, &credential, sizeof(uint64_t));
     FURI_LOG_D(
         TAG,
-        "pacs->crential after: %02x%02x%02x%02x%02x%02x%02x%02x",
+        "pacs->credential after: %02x%02x%02x%02x%02x%02x%02x%02x",
         pacs->credential[0],
         pacs->credential[1],
         pacs->credential[2],
