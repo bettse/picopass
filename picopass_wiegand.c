@@ -59,12 +59,17 @@ uint8_t picopass_get_bit_by_position(wiegand_message_t* data, uint8_t pos) {
     return result;
 }
 
-bool picopass_set_linear_field(wiegand_message_t* data, uint64_t value, uint8_t firstBit, uint8_t length) {
+bool picopass_set_linear_field(
+    wiegand_message_t* data,
+    uint64_t value,
+    uint8_t firstBit,
+    uint8_t length) {
     wiegand_message_t tmpdata;
     message_datacopy(data, &tmpdata);
     bool result = true;
     for(int i = 0; i < length; i++) {
-        result &= picopass_set_bit_by_position(&tmpdata, (value >> ((length - i) - 1)) & 1, firstBit + i);
+        result &= picopass_set_bit_by_position(
+            &tmpdata, (value >> ((length - i) - 1)) & 1, firstBit + i);
     }
     if(result) message_datacopy(&tmpdata, data);
 
@@ -180,8 +185,10 @@ bool picopass_Pack_H10302(wiegand_card_t* card, wiegand_message_t* packed) {
 
     packed->Length = 37; // Set number of bits
     picopass_set_linear_field(packed, card->CardNumber, 1, 35);
-    picopass_set_bit_by_position(packed, evenparity32(picopass_get_linear_field(packed, 1, 18)), 0);
-    picopass_set_bit_by_position(packed, oddparity32(picopass_get_linear_field(packed, 18, 18)), 36);
+    picopass_set_bit_by_position(
+        packed, evenparity32(picopass_get_linear_field(packed, 1, 18)), 0);
+    picopass_set_bit_by_position(
+        packed, oddparity32(picopass_get_linear_field(packed, 18, 18)), 36);
     return true;
 }
 
@@ -191,9 +198,10 @@ bool picopass_Unpack_H10302(wiegand_message_t* packed, wiegand_card_t* card) {
     memset(card, 0, sizeof(wiegand_card_t));
 
     card->CardNumber = picopass_get_linear_field(packed, 1, 35);
-    card->ParityValid =
-        (picopass_get_bit_by_position(packed, 0) == evenparity32(picopass_get_linear_field(packed, 1, 18))) &&
-        (picopass_get_bit_by_position(packed, 36) == oddparity32(picopass_get_linear_field(packed, 18, 18)));
+    card->ParityValid = (picopass_get_bit_by_position(packed, 0) ==
+                         evenparity32(picopass_get_linear_field(packed, 1, 18))) &&
+                        (picopass_get_bit_by_position(packed, 36) ==
+                         oddparity32(picopass_get_linear_field(packed, 18, 18)));
     return card->ParityValid;
 }
 
@@ -206,8 +214,10 @@ bool picopass_Pack_H10304(wiegand_card_t* card, wiegand_message_t* packed) {
     picopass_set_linear_field(packed, card->FacilityCode, 1, 16);
     picopass_set_linear_field(packed, card->CardNumber, 17, 19);
 
-    picopass_set_bit_by_position(packed, evenparity32(picopass_get_linear_field(packed, 1, 18)), 0);
-    picopass_set_bit_by_position(packed, oddparity32(picopass_get_linear_field(packed, 18, 18)), 36);
+    picopass_set_bit_by_position(
+        packed, evenparity32(picopass_get_linear_field(packed, 1, 18)), 0);
+    picopass_set_bit_by_position(
+        packed, oddparity32(picopass_get_linear_field(packed, 18, 18)), 36);
     return true;
 }
 
@@ -218,8 +228,9 @@ bool picopass_Unpack_H10304(wiegand_message_t* packed, wiegand_card_t* card) {
 
     card->FacilityCode = picopass_get_linear_field(packed, 1, 16);
     card->CardNumber = picopass_get_linear_field(packed, 17, 19);
-    card->ParityValid =
-        (picopass_get_bit_by_position(packed, 0) == evenparity32(picopass_get_linear_field(packed, 1, 18))) &&
-        (picopass_get_bit_by_position(packed, 36) == oddparity32(picopass_get_linear_field(packed, 18, 18)));
+    card->ParityValid = (picopass_get_bit_by_position(packed, 0) ==
+                         evenparity32(picopass_get_linear_field(packed, 1, 18))) &&
+                        (picopass_get_bit_by_position(packed, 36) ==
+                         oddparity32(picopass_get_linear_field(packed, 18, 18)));
     return card->ParityValid;
 }
