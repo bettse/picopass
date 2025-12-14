@@ -625,8 +625,11 @@ void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) 
     uint64_t credential = 0;
     credential |= ((uint64_t)packed->Bot);
     credential |= ((uint64_t)packed->Mid) << 32;
-    if(pacs->bitLength > 64 || packed->Top != 0) {
+    if(pacs->bitLength > 64) {
         FURI_LOG_W(TAG, "Warning: PACS bitLength exceeds 64 bits, truncating credential");
+    }
+    if(packed->Top != 0) {
+        FURI_LOG_W(TAG, "Warning: Packed credential Top field is non-zero, truncating upper bits");
     }
     FURI_LOG_D(TAG, "New credential: %016llx", credential);
     memcpy(pacs->credential, &credential, sizeof(uint64_t));
