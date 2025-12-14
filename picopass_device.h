@@ -164,3 +164,4 @@ void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pa
 void picopass_device_build_credential(PicopassPacs* pacs, PicopassBlock* card_data);
 bool picopass_device_hid_csn(PicopassDevice* dev);
 wiegand_message_t picopass_pacs_extract_wmo(PicopassPacs* pacs);
+void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* wmo);

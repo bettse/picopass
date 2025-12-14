@@ -618,3 +618,14 @@ wiegand_message_t picopass_pacs_extract_wmo(PicopassPacs* pacs) {
     uint32_t Top = 0; // H10301 only uses up to 64 bits
     return initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
 }
+
+void picopass_pacs_load_from_wmo(PicopassPacs* pacs, wiegand_message_t* packed) {
+        uint64_t credential = 0;
+        credential |= ((uint64_t)packed->Bot);
+        credential |= ((uint64_t)packed->Mid) << 32;
+        if (pacs->bitLength > 64 || packed->Top != 0) {
+            FURI_LOG_W(TAG, "Warning: PACS bitLength exceeds 64 bits, truncating credential");
+        }
+        FURI_LOG_D(TAG, "New credential: %016llx", credential);
+        memcpy(pacs->credential, &credential, sizeof(uint64_t));
+}

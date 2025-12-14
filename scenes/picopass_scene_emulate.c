@@ -125,12 +125,7 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
 
         Pack_H10301(&card, &packed);
 
-        uint64_t credential = 0;
-        credential |= ((uint64_t)packed.Bot);
-        credential |= ((uint64_t)packed.Mid) << 32;
-        // Top is always 0 for H10301
-        FURI_LOG_D(TAG, "New credential: %016llx", credential);
-        memcpy(pacs->credential, &credential, sizeof(uint64_t));
+        picopass_pacs_load_from_wmo(pacs, &packed);
 
         picopass_device_build_credential(pacs, dev_data->card_data);
     } else {
