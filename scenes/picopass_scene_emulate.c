@@ -140,16 +140,14 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
 
         Pack_H10301(&card, &packed);
 
-        uint64_t sentinel = 1ULL << pacs->bitLength;
         credential = 0;
-        credential |= ((uint64_t)packed.Bot) & 0xFFFFFFFF;
+        credential |= ((uint64_t)packed.Bot);
         credential |= ((uint64_t)packed.Mid) << 32;
-        // Add sentinel
-        credential |= sentinel;
-        // Copy back to pacs
-        credential = __builtin_bswap64(credential);
+        // Top is always 0 for H10301
+        FURI_LOG_D(TAG, "New credential: %016llx", credential);
         memcpy(pacs->credential, &credential, sizeof(uint64_t));
-        picopass_device_encrypt(pacs->credential, dev_data->card_data[7].data);
+
+        picopass_device_build_credential(pacs, dev_data->card_data);
     } else {
         FURI_LOG_E(TAG, "Failed to unpack H10301 credential");
     }

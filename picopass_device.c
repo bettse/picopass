@@ -522,6 +522,7 @@ void picopass_device_encrypt(uint8_t* dec_data, uint8_t* enc_data) {
     mbedtls_des3_free(&ctx);
 }
 
+// This function parses the Wiegand bit length and removes the sentinel bit
 void picopass_device_parse_wiegand(PicopassPacs* pacs) {
     uint8_t* credential = pacs->credential;
     uint32_t* halves = (uint32_t*)credential;
@@ -550,9 +551,8 @@ void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pa
     if(pacs->encryption == PicopassDeviceEncryption3DES) {
         FURI_LOG_D(TAG, "3DES Encrypted");
         picopass_device_decrypt(card_data[7].data, pacs->credential);
-
+        picopass_device_parse_wiegand(pacs);
         picopass_device_decrypt(card_data[8].data, pacs->pin0);
-
         picopass_device_decrypt(card_data[9].data, pacs->pin1);
     } else if(pacs->encryption == PicopassDeviceEncryptionNone) {
         FURI_LOG_D(TAG, "No Encryption");
@@ -566,9 +566,37 @@ void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pa
     }
 
     pacs->sio = (card_data[10].data[0] == 0x30); // rough check
-    picopass_device_parse_wiegand(pacs);
 }
 
+// inverse of picopass_device_parse_credential
+void picopass_device_build_credential(PicopassPacs* pacs, PicopassBlock* card_data) {
+    card_data[6].data[4] = pacs->biometrics;
+    card_data[6].data[6] = (card_data[6].data[6] & 0xF0) | (pacs->pin_length & 0x0F);
+    card_data[6].data[7] = pacs->encryption;
+
+    if(pacs->encryption == PicopassDeviceEncryption3DES) {
+        // The credential is stored without the sentinel bit, so we need to add it back before encryption
+        uint64_t sentinel = 1ULL << pacs->bitLength;
+        uint64_t credential = 0;
+        memcpy(&credential, pacs->credential, sizeof(uint64_t));
+        credential = __builtin_bswap64(credential | sentinel);
+        FURI_LOG_D(TAG, "Adding sentinel back: (%d) %016llx", pacs->bitLength, credential);
+
+        uint8_t block_data[8];
+        memcpy(block_data, &credential, sizeof(uint64_t));
+        picopass_device_encrypt(block_data, card_data[7].data);
+        picopass_device_encrypt(pacs->pin0, card_data[8].data);
+        picopass_device_encrypt(pacs->pin1, card_data[9].data);
+    } else if(pacs->encryption == PicopassDeviceEncryptionNone) {
+        memcpy(card_data[7].data, pacs->credential, PICOPASS_BLOCK_LEN);
+        memcpy(card_data[8].data, pacs->pin0, PICOPASS_BLOCK_LEN);
+        memcpy(card_data[9].data, pacs->pin1, PICOPASS_BLOCK_LEN);
+    } else if(pacs->encryption == PicopassDeviceEncryptionDES) {
+        FURI_LOG_D(TAG, "DES Encryption not implemented");
+    } else {
+        FURI_LOG_D(TAG, "Unknown encryption");
+    }
+}
 
 bool picopass_device_hid_csn(PicopassDevice* dev) {
     furi_assert(dev);

@@ -160,5 +160,5 @@ void picopass_device_set_loading_callback(
     void* context);
 
 void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pacs);
+void picopass_device_build_credential(PicopassPacs* pacs, PicopassBlock* card_data);
 bool picopass_device_hid_csn(PicopassDevice* dev);
-void picopass_device_encrypt(uint8_t* data, uint8_t* key);
