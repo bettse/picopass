@@ -222,5 +222,5 @@ bool Unpack_H10304(wiegand_message_t* packed, wiegand_card_t* card) {
     card->ParityValid =
         (get_bit_by_position(packed, 0) == evenparity32(get_linear_field(packed, 1, 18))) &&
         (get_bit_by_position(packed, 36) == oddparity32(get_linear_field(packed, 18, 18)));
-    return true;
+    return card->ParityValid;
 }
