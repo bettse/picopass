@@ -158,7 +158,7 @@ void picopass_scene_emulate_update_pacs(Picopass* picopass, int direction) {
         picopass_pacs_load_from_wmo(pacs, &packed);
         picopass_device_build_credential(pacs, dev_data->card_data);
     } else {
-        FURI_LOG_E(TAG, "Failed to unpack H10301 credential");
+        FURI_LOG_E(TAG, "Failed to unpack credential (tried H10301, C1k35s, H10302, H10304)");
     }
 
     picopass_scene_emulate_update_ui(picopass);
