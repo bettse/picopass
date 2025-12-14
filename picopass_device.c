@@ -607,3 +607,14 @@ bool picopass_device_hid_csn(PicopassDevice* dev) {
 
     return isHidRange;
 }
+
+wiegand_message_t picopass_pacs_extract_wmo(PicopassPacs* pacs) {
+    uint64_t credential = 0;
+    memcpy(&credential, pacs->credential, sizeof(uint64_t));
+    credential = __builtin_bswap64(credential);
+
+    uint32_t Bot = credential & 0xFFFFFFFF;
+    uint32_t Mid = (credential >> 32) & 0xFFFFFFFF;
+    uint32_t Top = 0; // H10301 only uses up to 64 bits
+    return initialize_wiegand_message_object(Top, Mid, Bot, pacs->bitLength);
+}
