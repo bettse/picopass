@@ -559,6 +559,7 @@ void picopass_device_parse_credential(PicopassBlock* card_data, PicopassPacs* pa
         memcpy(pacs->credential, card_data[7].data, PICOPASS_BLOCK_LEN);
         memcpy(pacs->pin0, card_data[8].data, PICOPASS_BLOCK_LEN);
         memcpy(pacs->pin1, card_data[9].data, PICOPASS_BLOCK_LEN);
+        picopass_device_parse_wiegand(pacs);
     } else if(pacs->encryption == PicopassDeviceEncryptionDES) {
         FURI_LOG_D(TAG, "DES Encrypted");
     } else {
