@@ -1,11 +1,15 @@
 #include "../picopass_i.h"
 #include <dolphin/dolphin.h>
 
+#define TAG "PicopassSceneDeviceInfo"
+
 void picopass_scene_device_info_widget_callback(
     GuiButtonType result,
     InputType type,
     void* context) {
+    furi_assert(context);
     Picopass* picopass = context;
+
     if(type == InputTypeShort) {
         view_dispatcher_send_custom_event(picopass->view_dispatcher, result);
     }
@@ -28,7 +32,7 @@ void picopass_scene_device_info_on_enter(void* context) {
     uint8_t csn[PICOPASS_BLOCK_LEN] = {0};
     memcpy(csn, card_data[PICOPASS_CSN_BLOCK_INDEX].data, PICOPASS_BLOCK_LEN);
     for(uint8_t i = 0; i < PICOPASS_BLOCK_LEN; i++) {
-        furi_string_cat_printf(csn_str, "%02X ", csn[i]);
+        furi_string_cat_printf(csn_str, "%02X", csn[i]);
     }
     bool sio = 0x30 == card_data[PICOPASS_ICLASS_PACS_CFG_BLOCK_INDEX].data[0];
 
@@ -125,6 +129,6 @@ bool picopass_scene_device_info_on_event(void* context, SceneManagerEvent event)
 void picopass_scene_device_info_on_exit(void* context) {
     Picopass* picopass = context;
 
-    // Clear views
+    // Clear view
     widget_reset(picopass->widget);
 }
