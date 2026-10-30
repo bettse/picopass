@@ -86,11 +86,11 @@ The captured NR-MACs can also be used to recover the card's key with Proxmark3's
 
 ## Offline part
 
-1. Download the `<csn>_<epurse>.mac` file from _sdcard/apps_data/picopass/ on your Flipper Zero
+1. Download the {csn}\_{epurse}.mac file from _sdcard/apps_data/picopass/ on your Flipper Zero
 2. The file name has the card's CSN and ePurse.  Each line in the file is one capture: NR (4 bytes) then MAC (4 bytes)
 3. On your Proxmark3:
-    * `hf iclass legrec --macs <NR+MAC from one line>`
-    * `hf iclass legbrute --epurse <ePurse from file name> --macs1 <NR+MAC from first line> --macs2 <NR+MAC from second line> --pk <partial key from legrec>`
+    * _hf iclass legrec --macs {NR+MAC from one line}_
+    * _hf iclass legbrute --epurse {ePurse from file name} --macs1 {NR+MAC from first line} --macs2 {NR+MAC from second line} --pk {partial key from legrec}_
 4. _legbrute_ returns the card's key
 
 
